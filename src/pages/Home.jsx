@@ -251,7 +251,7 @@ export default function Home() {
             <h2 className="text-xl font-bold text-green-400">QR Code da Venda</h2>
             <p className="text-gray-400 text-sm text-center">Mostre ou imprima esse QR pro cliente escanear</p>
             <div className="bg-white p-4 rounded-xl">
-              <QRCodeSVG value={currentQR} size={180} />
+              <QRCode value={currentQR} size={180} />
             </div>
             <p className="text-gray-600 text-xs text-center break-all">{currentQR}</p>
             <button onClick={() => setCurrentQR(null)}
