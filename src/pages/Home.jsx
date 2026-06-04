@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react"
 import { supabase } from "../supabase"
-import { QRCodeSVG as QRCode } from "qrcode.react"
+import Produtos from "./Produtos"
+import Caixa from "./Caixa"
 
 export default function Home() {
   const [session, setSession] = useState(null)
   const [page, setPage] = useState("login")
+  const [view, setView] = useState("dashboard") // dashboard | produtos | caixa
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -15,9 +17,6 @@ export default function Home() {
   const [campName, setCampName] = useState("")
   const [campReward, setCampReward] = useState("")
   const [campVisits, setCampVisits] = useState(5)
-  const [selectedCampaign, setSelectedCampaign] = useState(null)
-  const [items, setItems] = useState([{ name: "", qty: 1, price: "" }])
-  const [currentQR, setCurrentQR] = useState(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -32,25 +31,13 @@ export default function Home() {
   }, [])
 
   async function fetchEstablishment(userId) {
-    const { data } = await supabase
-      .from("establishments")
-      .select("*")
-      .eq("user_id", userId)
-      .single()
-    if (data) {
-      setEstablishment(data)
-      fetchCampaigns(data.id)
-      setPage("dashboard")
-    } else {
-      setPage("register")
-    }
+    const { data } = await supabase.from("establishments").select("*").eq("user_id", userId).single()
+    if (data) { setEstablishment(data); fetchCampaigns(data.id); setPage("dashboard") }
+    else setPage("register")
   }
 
   async function fetchCampaigns(estId) {
-    const { data } = await supabase
-      .from("campaigns")
-      .select("*")
-      .eq("establishment_id", estId)
+    const { data } = await supabase.from("campaigns").select("*").eq("establishment_id", estId)
     setCampaigns(data || [])
   }
 
@@ -67,17 +54,14 @@ export default function Home() {
     setLoading(true)
     const { error } = await supabase.auth.signUp({ email, password })
     if (error) setMessage("Erro: " + error.message)
-    else setMessage("Conta criada! Verifique seu email.")
+    else setMessage("Conta criada!")
     setLoading(false)
   }
 
   async function handleRegister() {
     if (!name) { setMessage("Digite o nome."); return }
     setLoading(true)
-    const { data, error } = await supabase
-      .from("establishments")
-      .insert([{ name, user_id: session.user.id, email: session.user.email }])
-      .select().single()
+    const { data, error } = await supabase.from("establishments").insert([{ name, user_id: session.user.id, email: session.user.email }]).select().single()
     if (error) setMessage("Erro: " + error.message)
     else { setEstablishment(data); fetchCampaigns(data.id); setPage("dashboard") }
     setLoading(false)
@@ -85,54 +69,14 @@ export default function Home() {
 
   async function handleCreateCampaign() {
     if (!campName || !campReward) { setMessage("Preencha todos os campos."); return }
-    const { error } = await supabase.from("campaigns").insert([{
-      establishment_id: establishment.id,
-      name: campName,
-      reward_description: campReward,
-      visits_required: campVisits
-    }])
+    const { error } = await supabase.from("campaigns").insert([{ establishment_id: establishment.id, name: campName, reward_description: campReward, visits_required: campVisits }])
     if (error) setMessage("Erro: " + error.message)
     else { setMessage(""); setCampName(""); setCampReward(""); setCampVisits(5); fetchCampaigns(establishment.id) }
   }
 
-  // Registra a venda e gera QR único pra essa compra
-  async function handleRegisterSale() {
-    const validItems = items.filter(i => i.name && i.price)
-    if (!selectedCampaign || validItems.length === 0) {
-      setMessage("Selecione uma campanha e adicione pelo menos 1 item.")
-      return
-    }
-    const total = validItems.reduce((sum, i) => sum + (parseFloat(i.price) * i.qty), 0)
-    const { data, error } = await supabase
-      .from("sales")
-      .insert([{
-        establishment_id: establishment.id,
-        campaign_id: selectedCampaign,
-        items: validItems,
-        total
-      }])
-      .select().single()
-
-    if (error) setMessage("Erro: " + error.message)
-    else {
-      setCurrentQR(`https://receiptloop.vercel.app/nota/${data.id}`)
-      setItems([{ name: "", qty: 1, price: "" }])
-      setMessage("")
-    }
-  }
-
-  function addItem() {
-    setItems([...items, { name: "", qty: 1, price: "" }])
-  }
-
-  function updateItem(index, field, value) {
-    const updated = [...items]
-    updated[index][field] = value
-    setItems(updated)
-  }
-
-  function removeItem(index) {
-    setItems(items.filter((_, i) => i !== index))
+  async function handleDeleteCampaign(id) {
+    await supabase.from("campaigns").delete().eq("id", id)
+    fetchCampaigns(establishment.id)
   }
 
   async function handleLogout() {
@@ -140,147 +84,116 @@ export default function Home() {
     setSession(null); setEstablishment(null); setCampaigns([]); setPage("login")
   }
 
-  // Tela de login
-  if (!session || page === "login") {
-    return (
-      <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center p-4">
-        <div className="bg-gray-900 rounded-2xl p-8 w-full max-w-md shadow-xl">
-          <h1 className="text-3xl font-bold text-green-400 mb-2">ReceiptLoop</h1>
-          <p className="text-gray-400 mb-8">Entre na sua conta</p>
-          <div className="flex flex-col gap-4">
-            <input type="email" placeholder="Email" value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-green-400" />
-            <input type="password" placeholder="Senha" value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-green-400" />
-            <button onClick={handleLogin} disabled={loading}
-              className="bg-green-500 hover:bg-green-400 text-black font-bold py-3 rounded-xl transition-colors disabled:opacity-50">
-              {loading ? "Entrando..." : "Entrar"}
-            </button>
-            <button onClick={handleSignUp} disabled={loading}
-              className="bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-xl transition-colors">
-              Criar conta
-            </button>
-            {message && <p className="text-center text-sm text-yellow-400">{message}</p>}
-          </div>
+  if (view === "produtos" && establishment) return <Produtos establishment={establishment} onBack={() => setView("dashboard")} />
+  if (view === "caixa" && establishment) return <Caixa establishment={establishment} campaigns={campaigns} onBack={() => setView("dashboard")} />
+
+  if (!session || page === "login") return (
+    <div style={{ minHeight: "100vh", background: "#f0f2f5", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px", fontFamily: "sans-serif" }}>
+      <div style={{ background: "white", borderRadius: "16px", padding: "32px", width: "100%", maxWidth: "400px", boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}>
+        <h1 style={{ fontSize: "28px", fontWeight: "700", color: "#1a73e8", marginBottom: "4px" }}>ReceiptLoop</h1>
+        <p style={{ color: "#888", marginBottom: "24px", fontSize: "14px" }}>Entre na sua conta</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)}
+            style={{ padding: "12px 14px", border: "1px solid #e5e7eb", borderRadius: "10px", fontSize: "14px" }} />
+          <input type="password" placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)}
+            style={{ padding: "12px 14px", border: "1px solid #e5e7eb", borderRadius: "10px", fontSize: "14px" }} />
+          <button onClick={handleLogin} disabled={loading}
+            style={{ padding: "12px", background: "#1a73e8", color: "white", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "600", cursor: "pointer" }}>
+            {loading ? "Entrando..." : "Entrar"}
+          </button>
+          <button onClick={handleSignUp} disabled={loading}
+            style={{ padding: "12px", background: "#f3f4f6", color: "#555", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "500", cursor: "pointer" }}>
+            Criar conta
+          </button>
+          {message && <p style={{ textAlign: "center", fontSize: "13px", color: "#f59e0b" }}>{message}</p>}
         </div>
       </div>
-    )
-  }
+    </div>
+  )
 
-  // Tela de cadastro
-  if (page === "register") {
-    return (
-      <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center p-4">
-        <div className="bg-gray-900 rounded-2xl p-8 w-full max-w-md shadow-xl">
-          <h1 className="text-3xl font-bold text-green-400 mb-2">Quase lá!</h1>
-          <p className="text-gray-400 mb-8">Como se chama seu estabelecimento?</p>
-          <div className="flex flex-col gap-4">
-            <input type="text" placeholder="Nome do estabelecimento" value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-green-400" />
-            <button onClick={handleRegister} disabled={loading}
-              className="bg-green-500 hover:bg-green-400 text-black font-bold py-3 rounded-xl transition-colors disabled:opacity-50">
-              {loading ? "Salvando..." : "Continuar"}
-            </button>
-            {message && <p className="text-center text-sm text-red-400">{message}</p>}
-          </div>
+  if (page === "register") return (
+    <div style={{ minHeight: "100vh", background: "#f0f2f5", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px", fontFamily: "sans-serif" }}>
+      <div style={{ background: "white", borderRadius: "16px", padding: "32px", width: "100%", maxWidth: "400px", boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}>
+        <h1 style={{ fontSize: "22px", fontWeight: "700", color: "#1a1a1a", marginBottom: "4px" }}>Quase lá!</h1>
+        <p style={{ color: "#888", marginBottom: "24px", fontSize: "14px" }}>Como se chama seu estabelecimento?</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          <input type="text" placeholder="Nome do estabelecimento" value={name} onChange={(e) => setName(e.target.value)}
+            style={{ padding: "12px 14px", border: "1px solid #e5e7eb", borderRadius: "10px", fontSize: "14px" }} />
+          <button onClick={handleRegister} disabled={loading}
+            style={{ padding: "12px", background: "#1a73e8", color: "white", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "600", cursor: "pointer" }}>
+            {loading ? "Salvando..." : "Continuar"}
+          </button>
+          {message && <p style={{ fontSize: "13px", color: "#e24b4a" }}>{message}</p>}
         </div>
       </div>
-    )
-  }
+    </div>
+  )
 
-  // Dashboard
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-6">
-      <div className="max-w-2xl mx-auto">
+    <div style={{ minHeight: "100vh", background: "#f0f2f5", fontFamily: "sans-serif" }}>
+      <div style={{ background: "white", borderBottom: "1px solid #e5e7eb", padding: "14px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <span style={{ fontSize: "20px", fontWeight: "700", color: "#1a73e8" }}>ReceiptLoop</span>
+          <span style={{ fontSize: "14px", color: "#888", marginLeft: "12px" }}>{establishment?.name}</span>
+        </div>
+        <button onClick={handleLogout} style={{ background: "none", border: "none", fontSize: "13px", color: "#888", cursor: "pointer" }}>Sair</button>
+      </div>
 
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-green-400">ReceiptLoop</h1>
-            <p className="text-gray-400">Olá, <span className="text-white font-semibold">{establishment?.name}</span></p>
-          </div>
-          <button onClick={handleLogout} className="text-gray-500 hover:text-white text-sm">Sair</button>
+      <div style={{ maxWidth: "700px", margin: "0 auto", padding: "24px 16px" }}>
+
+        {/* Ações rápidas */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "28px" }}>
+          <button onClick={() => setView("caixa")}
+            style={{ background: "#1a73e8", color: "white", border: "none", borderRadius: "12px", padding: "20px", cursor: "pointer", textAlign: "left" }}>
+            <div style={{ fontSize: "24px", marginBottom: "8px" }}>🧾</div>
+            <div style={{ fontSize: "16px", fontWeight: "600" }}>Abrir Caixa</div>
+            <div style={{ fontSize: "12px", opacity: 0.8, marginTop: "2px" }}>Registrar vendas e gerar QR</div>
+          </button>
+          <button onClick={() => setView("produtos")}
+            style={{ background: "white", color: "#1a1a1a", border: "1px solid #e5e7eb", borderRadius: "12px", padding: "20px", cursor: "pointer", textAlign: "left" }}>
+            <div style={{ fontSize: "24px", marginBottom: "8px" }}>🛍</div>
+            <div style={{ fontSize: "16px", fontWeight: "600" }}>Produtos</div>
+            <div style={{ fontSize: "12px", color: "#888", marginTop: "2px" }}>Gerenciar cardápio</div>
+          </button>
         </div>
 
-        {/* Registrar venda */}
-        <div className="bg-gray-900 rounded-2xl p-6 mb-6">
-          <h2 className="text-xl font-bold mb-4">🧾 Registrar Venda</h2>
-
-          <label className="text-gray-400 text-sm mb-2 block">Campanha</label>
-          <select value={selectedCampaign || ""} onChange={(e) => setSelectedCampaign(e.target.value)}
-            className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white w-full mb-4 focus:outline-none focus:border-green-400">
-            <option value="">Selecione uma campanha</option>
-            {campaigns.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-
-          <label className="text-gray-400 text-sm mb-2 block">Itens da compra</label>
-          <div className="flex flex-col gap-2 mb-3">
-            {items.map((item, i) => (
-              <div key={i} className="flex gap-2 items-center">
-                <input type="text" placeholder="Produto" value={item.name}
-                  onChange={(e) => updateItem(i, "name", e.target.value)}
-                  className="bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white placeholder-gray-500 flex-1 focus:outline-none focus:border-green-400" />
-                <input type="number" placeholder="Qtd" value={item.qty}
-                  onChange={(e) => updateItem(i, "qty", parseInt(e.target.value))}
-                  className="bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white w-16 focus:outline-none focus:border-green-400" />
-                <input type="number" placeholder="R$" value={item.price}
-                  onChange={(e) => updateItem(i, "price", e.target.value)}
-                  className="bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white w-24 focus:outline-none focus:border-green-400" />
-                {items.length > 1 && (
-                  <button onClick={() => removeItem(i)} className="text-red-400 hover:text-red-300 text-xl">×</button>
-                )}
+        {/* Campanhas */}
+        <div style={{ background: "white", borderRadius: "12px", border: "1px solid #e5e7eb", padding: "20px", marginBottom: "16px" }}>
+          <h2 style={{ fontSize: "16px", fontWeight: "600", color: "#1a1a1a", marginBottom: "16px" }}>Campanhas de Fidelidade</h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "16px" }}>
+            {campaigns.length === 0 && <p style={{ fontSize: "13px", color: "#aaa", textAlign: "center", padding: "16px 0" }}>Nenhuma campanha ainda.</p>}
+            {campaigns.map(c => (
+              <div key={c.id} style={{ display: "flex", alignItems: "center", gap: "12px", background: "#f8fafc", borderRadius: "10px", padding: "12px 14px" }}>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: "14px", fontWeight: "500", color: "#1a1a1a", margin: 0 }}>{c.name}</p>
+                  <p style={{ fontSize: "12px", color: "#1a73e8", margin: "2px 0 0" }}>🎁 {c.reward_description} · {c.visits_required} visitas</p>
+                </div>
+                <button onClick={() => handleDeleteCampaign(c.id)}
+                  style={{ background: "#fff0f0", border: "1px solid #fecaca", color: "#e24b4a", borderRadius: "8px", padding: "6px 12px", fontSize: "12px", cursor: "pointer" }}>
+                  Remover
+                </button>
               </div>
             ))}
           </div>
 
-          <button onClick={addItem} className="text-green-400 text-sm hover:text-green-300 mb-4">+ Adicionar item</button>
-
-          <button onClick={handleRegisterSale}
-            className="bg-green-500 hover:bg-green-400 text-black font-bold py-3 rounded-xl transition-colors w-full">
-            Gerar QR da Nota
-          </button>
-          {message && <p className="text-sm text-red-400 mt-2">{message}</p>}
-        </div>
-
-        {/* QR gerado */}
-        {currentQR && (
-          <div className="bg-gray-900 rounded-2xl p-6 mb-6 flex flex-col items-center gap-4">
-            <h2 className="text-xl font-bold text-green-400">QR Code da Venda</h2>
-            <p className="text-gray-400 text-sm text-center">Mostre ou imprima esse QR pro cliente escanear</p>
-            <div className="bg-white p-4 rounded-xl">
-              <QRCode value={currentQR} size={180} />
+          <div style={{ borderTop: "1px solid #f3f4f6", paddingTop: "16px" }}>
+            <h3 style={{ fontSize: "14px", fontWeight: "600", color: "#1a1a1a", marginBottom: "12px" }}>Nova Campanha</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <input type="text" placeholder="Nome da campanha" value={campName} onChange={(e) => setCampName(e.target.value)}
+                style={{ padding: "10px 12px", border: "1px solid #e5e7eb", borderRadius: "8px", fontSize: "14px" }} />
+              <input type="text" placeholder="Recompensa (ex: 1 doce grátis)" value={campReward} onChange={(e) => setCampReward(e.target.value)}
+                style={{ padding: "10px 12px", border: "1px solid #e5e7eb", borderRadius: "8px", fontSize: "14px" }} />
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "13px", color: "#888" }}>Visitas necessárias:</span>
+                <input type="number" value={campVisits} onChange={(e) => setCampVisits(Number(e.target.value))}
+                  style={{ width: "80px", padding: "10px 12px", border: "1px solid #e5e7eb", borderRadius: "8px", fontSize: "14px" }} />
+              </div>
+              <button onClick={handleCreateCampaign}
+                style={{ padding: "11px", background: "#1a73e8", color: "white", border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: "600", cursor: "pointer" }}>
+                Criar Campanha
+              </button>
+              {message && <p style={{ fontSize: "13px", color: "#e24b4a" }}>{message}</p>}
             </div>
-            <p className="text-gray-600 text-xs text-center break-all">{currentQR}</p>
-            <button onClick={() => setCurrentQR(null)}
-              className="text-gray-500 hover:text-white text-sm">
-              Limpar e registrar nova venda
-            </button>
-          </div>
-        )}
-
-        {/* Criar campanha */}
-        <div className="bg-gray-900 rounded-2xl p-6 mb-6">
-          <h2 className="text-xl font-bold mb-4">Nova Campanha</h2>
-          <div className="flex flex-col gap-3">
-            <input type="text" placeholder="Nome da campanha" value={campName}
-              onChange={(e) => setCampName(e.target.value)}
-              className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-green-400" />
-            <input type="text" placeholder="Recompensa (ex: 1 doce grátis)" value={campReward}
-              onChange={(e) => setCampReward(e.target.value)}
-              className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-green-400" />
-            <div className="flex items-center gap-3">
-              <span className="text-gray-400 text-sm">Visitas necessárias:</span>
-              <input type="number" value={campVisits}
-                onChange={(e) => setCampVisits(Number(e.target.value))}
-                className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white w-24 focus:outline-none focus:border-green-400" />
-            </div>
-            <button onClick={handleCreateCampaign}
-              className="bg-green-500 hover:bg-green-400 text-black font-bold py-3 rounded-xl transition-colors">
-              Criar Campanha
-            </button>
           </div>
         </div>
 
