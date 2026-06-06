@@ -164,7 +164,7 @@ export default function Home() {
 
   async function handleCreateCampaign() {
     if (!campName || !campReward) { setMessage("Preencha todos os campos."); return }
-    const { error } = await supabase.from("campaigns").insert([{ establishment_id: establishment.id, name: campName, reward_description: campReward, visits_required: campVisits }])
+    const { error } = await supabase.from("campaigns").insert([{ establishment_id: establishment.id, name: campName, reward_description: campReward, visits_required: 4}])
     if (error) { setMessage("Erro: " + error.message); return }
     setCampName(""); setCampReward(""); setCampVisits(5); setMessage(""); setShowNewCampaign(false)
     fetchCampaigns(establishment.id)
@@ -252,10 +252,7 @@ export default function Home() {
                   <label style={styles.label}>Recompensa</label>
                   <input type="text" placeholder="Ex: 1 cookie grátis" value={campReward} onChange={(e) => setCampReward(e.target.value)} style={styles.input} />
                 </div>
-                <div>
-                  <label style={styles.label}>Visitas necessárias</label>
-                  <input type="number" value={campVisits} onChange={(e) => setCampVisits(Number(e.target.value))} style={{ ...styles.input, width: "100px" }} />
-                </div>
+          
                 <button onClick={handleCreateCampaign} style={styles.btnPrimary}>Criar Campanha</button>
                 {message && <p style={{ fontSize: "13px", color: colors.danger }}>{message}</p>}
               </div>
