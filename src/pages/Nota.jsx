@@ -39,8 +39,9 @@ export default function Nota() {
   const [phone, setPhone] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState(null)
-  const [visitCount, setVisitCount] = useState(0)
-  const [piece, setPiece] = useState(1)
+  const [piece, setPiece] = useState(null)
+  const [collectedPieces, setCollectedPieces] = useState([])
+  const [completed, setCompleted] = useState(false)
   const pieceRef = useRef(null)
 
   useEffect(() => {
@@ -54,9 +55,6 @@ export default function Nota() {
         setSale(data)
         setCampaign(data.campaigns)
         setEstablishment(data.establishments)
-        // Peça baseada no ID da venda — determinística
-        const pieceNum = (parseInt(data.id.replace(/-/g, "").slice(0, 8), 16) % 4) + 1
-        setPiece(pieceNum)
       }
       setLoading(false)
     }
@@ -67,31 +65,48 @@ export default function Nota() {
     if (!phone) return
     setSubmitting(true)
 
-    const { data: existing } = await supabase
+    // Busca todas as visitas do cliente nessa campanha
+    const { data: allVisits } = await supabase
       .from("customer_visits")
       .select("*")
       .eq("campaign_id", campaign.id)
       .eq("customer_phone", phone)
-      .maybeSingle()
 
-    if (existing) {
-      const newCount = existing.visit_count + 1
-      const shouldRedeem = newCount >= campaign.visits_required && !existing.redeemed
-      await supabase.from("customer_visits").update({
-        visit_count: newCount,
-        redeemed: shouldRedeem ? true : existing.redeemed
-      }).eq("id", existing.id)
-      setVisitCount(newCount)
-      setResult(shouldRedeem ? "redeemed" : "progress")
-    } else {
-      await supabase.from("customer_visits").insert([{
-        campaign_id: campaign.id,
-        customer_phone: phone,
-        visit_count: 1
-      }])
-      setVisitCount(1)
-      setResult("progress")
+    const visits = allVisits || []
+
+    // Peças já coletadas pelo cliente
+    const piecesAlreadyHave = visits.map(v => v.piece_number).filter(Boolean)
+
+    // Sorteia uma peça — preferindo as que ainda não tem
+    const missingPieces = [1, 2, 3, 4].filter(p => !piecesAlreadyHave.includes(p))
+    const pool = missingPieces.length > 0 ? missingPieces : [1, 2, 3, 4]
+    const newPiece = pool[Math.floor(Math.random() * pool.length)]
+
+    // Registra a nova visita com a peça
+    await supabase.from("customer_visits").insert([{
+      campaign_id: campaign.id,
+      customer_phone: phone,
+      visit_count: 1,
+      piece_number: newPiece
+    }])
+
+    // Verifica se agora tem as 4 peças diferentes
+    const allPieces = [...piecesAlreadyHave, newPiece]
+    const uniquePieces = [...new Set(allPieces)]
+    const hasAll = uniquePieces.length === 4
+
+    // Se completou, marca como resgatado
+    if (hasAll) {
+      await supabase.from("customer_visits")
+        .update({ redeemed: true })
+        .eq("campaign_id", campaign.id)
+        .eq("customer_phone", phone)
     }
+
+    setPiece(newPiece)
+    setCollectedPieces(uniquePieces)
+    setCompleted(hasAll)
+    setResult("progress")
     setSubmitting(false)
   }
 
@@ -99,7 +114,6 @@ export default function Nota() {
     try {
       const svg = pieceRef.current?.querySelector("svg")
       if (!svg) return
-
       const svgData = new XMLSerializer().serializeToString(svg)
       const canvas = document.createElement("canvas")
       canvas.width = 400
@@ -117,9 +131,8 @@ export default function Nota() {
       }
       img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)))
     } catch (e) {
-      // fallback — compartilha via share API se disponível
       if (navigator.share) {
-        navigator.share({ title: `Peça ${piece} do Brigadeiro — ReceiptLoop`, text: `Coletei a peça ${piece} de 4! Faltam ${4 - visitCount} pra ganhar meu brigadeiro grátis.` })
+        navigator.share({ title: `Peça ${piece} — ReceiptLoop`, text: `Coletei a peça ${piece}! Faltam ${4 - collectedPieces.length} pra ganhar.` })
       }
     }
   }
@@ -142,10 +155,8 @@ export default function Nota() {
   const mono = { fontFamily: "'Courier New', monospace" }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f0ede6", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "20px 12px", paddingBottom: "40px" }}>
+    <div style={{ minHeight: "100vh", background: "#f0ede6", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "20px 12px 40px" }}>
       <div style={{ width: "100%", maxWidth: "340px" }}>
-
-        {/* Nota fiscal */}
         <div style={{ ...mono, background: "#fffef5", padding: "20px 16px", boxShadow: "2px 4px 24px rgba(0,0,0,0.12)", position: "relative" }}>
 
           {/* Cabeçalho */}
@@ -190,13 +201,14 @@ export default function Nota() {
           <div style={{ fontSize: "10px", color: "#ccc", textAlign: "center", marginBottom: "12px" }}>--------------------------------</div>
 
           {/* Seção fidelidade */}
-          {result === "redeemed" ? (
+          {completed ? (
             <div style={{ textAlign: "center", padding: "16px 0" }}>
               <div style={{ fontSize: "36px", marginBottom: "8px" }}>🎉</div>
-              <div style={{ fontSize: "13px", fontWeight: "700", color: "#10B981", marginBottom: "4px" }}>PARABÉNS! VOCÊ GANHOU!</div>
-              <div style={{ fontSize: "11px", color: "#065F46", marginBottom: "8px" }}>{campaign?.reward_description}</div>
+              <div style={{ fontSize: "13px", fontWeight: "700", color: "#10B981", marginBottom: "4px" }}>QUEBRA-CABEÇA COMPLETO!</div>
+              <div style={{ fontSize: "11px", color: "#065F46", marginBottom: "12px" }}>Você coletou as 4 peças do brigadeiro!</div>
               <div style={{ background: "#ECFDF5", border: "1px solid #A7F3D0", borderRadius: "8px", padding: "10px", fontSize: "11px", color: "#065F46" }}>
-                Mostre essa tela no caixa para resgatar 🎁
+                🎁 Mostre essa tela no caixa e ganhe:<br />
+                <strong>{campaign?.reward_description}</strong>
               </div>
             </div>
           ) : result === "progress" ? (
@@ -211,34 +223,34 @@ export default function Nota() {
               </div>
 
               <div style={{ fontSize: "10px", color: "#555", marginBottom: "12px" }}>
-  PEÇA {piece} DE 4
-</div>
+                VOCÊ GANHOU A PEÇA {piece} DE 4
+              </div>
 
-<div style={{ fontSize: "10px", color: "#555", marginBottom: "12px" }}>
-  PEÇA {piece} DE 4
-</div>
+              {/* Quais peças já tem */}
+              <div style={{ marginBottom: "6px" }}>
+                <div style={{ fontSize: "9px", color: "#aaa", marginBottom: "6px" }}>SUAS PEÇAS COLETADAS:</div>
+                <div style={{ display: "flex", justifyContent: "center", gap: "6px", marginBottom: "4px" }}>
+                  {[1, 2, 3, 4].map(p => (
+                    <div key={p} style={{
+                      width: "32px", height: "32px", borderRadius: "6px",
+                      background: collectedPieces.includes(p) ? "#4F46E5" : "#f0f0f0",
+                      border: collectedPieces.includes(p) ? "none" : "1px dashed #ccc",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: collectedPieces.includes(p) ? "14px" : "10px",
+                      color: collectedPieces.includes(p) ? "white" : "#bbb",
+                      fontWeight: "700", transition: "all 0.3s"
+                    }}>
+                      {collectedPieces.includes(p) ? "🧩" : p}
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-        {/* Progresso — quadradinhos estilo quebra-cabeça */}
-        <div style={{ display: "flex", justifyContent: "center", gap: "4px", marginBottom: "12px" }}>
-          {Array.from({ length: campaign?.visits_required }).map((_, i) => (
-            <div key={i} style={{
-              width: "24px", height: "24px", borderRadius: "4px",
-              background: i < visitCount ? "#4F46E5" : "#e8e8e8",
-              border: i < visitCount ? "none" : "1px dashed #ccc",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: "10px", color: "white", fontWeight: "700",
-              transition: "all 0.3s"
-            }}>
-              {i < visitCount ? "🧩" : ""}
-            </div>
-          ))}
-        </div>
-
-        <div style={{ fontSize: "9px", color: "#888", marginBottom: "16px" }}>
-          {campaign?.visits_required - visitCount > 0
-            ? `Faltam ${campaign?.visits_required - visitCount} compra${campaign?.visits_required - visitCount > 1 ? "s" : ""} pra ganhar: ${campaign?.reward_description}`
-            : "Você completou! Mostre no caixa."}
-        </div>
+              <div style={{ fontSize: "9px", color: "#888", marginBottom: "16px" }}>
+                {4 - collectedPieces.length > 0
+                  ? `Faltam ${4 - collectedPieces.length} peça${4 - collectedPieces.length > 1 ? "s" : ""} pra completar e ganhar: ${campaign?.reward_description}`
+                  : "Você completou! Mostre no caixa."}
+              </div>
 
               {/* Botão salvar peça */}
               <button onClick={handleSavePiece}
@@ -252,7 +264,7 @@ export default function Nota() {
                 <div style={{ fontSize: "10px", fontWeight: "700", letterSpacing: "1px", marginBottom: "4px" }}>★ PROGRAMA FIDELIDADE ★</div>
                 <div style={{ fontSize: "9px", color: "#555", marginBottom: "2px" }}>{campaign?.name}</div>
                 <div style={{ fontSize: "10px", fontWeight: "700", color: "#333", marginBottom: "8px" }}>🎁 {campaign?.reward_description}</div>
-                <div style={{ fontSize: "9px", color: "#888" }}>Digite seu WhatsApp pra acumular pontos e revelar sua peça do quebra-cabeça!</div>
+                <div style={{ fontSize: "9px", color: "#888" }}>Digite seu WhatsApp pra revelar sua peça do quebra-cabeça!</div>
               </div>
               <input
                 type="tel"
@@ -270,7 +282,6 @@ export default function Nota() {
 
           <div style={{ fontSize: "10px", color: "#ccc", textAlign: "center", margin: "12px 0" }}>--------------------------------</div>
 
-          {/* Descarte */}
           <div style={{ textAlign: "center", marginBottom: "10px" }}>
             <div style={{ fontSize: "9px", color: "#888" }}>♻️ Após escanear, descarte este cupom</div>
             <div style={{ fontSize: "9px", color: "#888" }}>no lixo <strong>reciclável</strong>. Obrigado!</div>
@@ -284,7 +295,6 @@ export default function Nota() {
           </div>
         </div>
 
-        {/* Efeito rasgado */}
         <div style={{ width: "100%", height: "12px", background: "#fffef5", clipPath: "polygon(0 0, 3% 100%, 6% 0, 9% 100%, 12% 0, 15% 100%, 18% 0, 21% 100%, 24% 0, 27% 100%, 30% 0, 33% 100%, 36% 0, 39% 100%, 42% 0, 45% 100%, 48% 0, 51% 100%, 54% 0, 57% 100%, 60% 0, 63% 100%, 66% 0, 69% 100%, 72% 0, 75% 100%, 78% 0, 81% 100%, 84% 0, 87% 100%, 90% 0, 93% 100%, 96% 0, 100% 100%, 100% 0)" }} />
       </div>
     </div>
