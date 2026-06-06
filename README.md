@@ -1,16 +1,75 @@
-# React + Vite
+# ReceiptLoop
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**ReceiptLoop** é uma aplicação web de fidelização gamificada para pequenos negócios.
 
-Currently, two official plugins are available:
+A proposta do projeto é transformar cada compra em uma nova oportunidade de relacionamento com o cliente. Após uma venda, o estabelecimento gera um QR Code para a nota digital. O cliente escaneia o código, informa seu WhatsApp e recebe uma peça de um quebra-cabeça de fidelidade. Ao completar todas as peças, ele desbloqueia uma recompensa definida pelo estabelecimento.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Problema
 
-## React Compiler
+Pequenos negócios geralmente têm dificuldade em manter clientes recorrentes. Muitos programas de fidelidade ainda dependem de cartões físicos, anotações manuais ou processos pouco atrativos para o cliente.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Esses métodos podem gerar problemas como:
 
-## Expanding the ESLint configuration
+- perda do cartão físico;
+- falta de controle sobre visitas e recompensas;
+- baixa adesão dos clientes;
+- pouca diferenciação na experiência de compra;
+- dificuldade para o lojista acompanhar campanhas de fidelidade.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Solução
+
+O ReceiptLoop propõe uma experiência simples, digital e gamificada.
+
+Em vez de usar um cartão físico, o cliente acumula progresso por meio de uma nota digital com QR Code. Cada compra pode gerar uma nova peça de um quebra-cabeça. Ao completar o conjunto, o cliente recebe uma recompensa.
+
+## Principais funcionalidades
+
+- Cadastro e login de estabelecimento;
+- Cadastro de produtos;
+- Organização de produtos por categoria;
+- Tela de caixa para registrar vendas;
+- Geração de QR Code para a nota digital;
+- Nota digital acessível pelo cliente;
+- Registro do cliente por WhatsApp;
+- Sistema de fidelidade com peças colecionáveis;
+- Recompensa ao completar o quebra-cabeça;
+- Tela de simulação para demonstrar a experiência do cliente.
+
+## Fluxo do sistema
+
+1. O estabelecimento acessa a plataforma.
+2. Cadastra seus produtos.
+3. Cria uma campanha de fidelidade.
+4. Realiza uma venda pela tela de caixa.
+5. O sistema gera um QR Code da nota digital.
+6. O cliente escaneia o QR Code.
+7. O cliente informa o WhatsApp.
+8. O sistema registra a visita e libera uma peça.
+9. Ao completar todas as peças, o cliente desbloqueia a recompensa.
+
+## Tecnologias utilizadas
+
+- React
+- Vite
+- React Router
+- Supabase
+- Supabase Auth
+- Supabase Database
+- Supabase Storage
+- qrcode.react
+- Vercel
+
+## Estrutura principal
+
+```txt
+src/
+├── pages/
+│   ├── Home.jsx
+│   ├── Produtos.jsx
+│   ├── Caixa.jsx
+│   ├── Nota.jsx
+│   ├── Simulacao.jsx
+│   └── CheckIn.jsx
+├── supabase.js
+├── App.jsx
+└── main.jsx
