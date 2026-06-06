@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { supabase } from "../supabase"
 import Produtos from "./Produtos"
 import Caixa from "./Caixa"
+import Simulacao from "./Simulacao"
 
 const colors = {
   primary: "#4F46E5",
@@ -67,7 +68,7 @@ function AuthScreen({ onLogin, onSignUp, message, loading }) {
               <input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} style={styles.input} />
             </div>
             <button onClick={() => isLogin ? onLogin(email, password) : onSignUp(email, password)} disabled={loading}
-              style={{ ...styles.btnPrimary, marginTop: "4px", opacity: loading ? 0.7 : 1, background: colors.primary }}>
+              style={{ ...styles.btnPrimary, marginTop: "4px", opacity: loading ? 0.7 : 1 }}>
               {loading ? "Aguarde..." : isLogin ? "Entrar" : "Criar conta"}
             </button>
             {message && <p style={{ fontSize: "13px", color: "#F59E0B", textAlign: "center", background: "#FFFBEB", padding: "10px", borderRadius: "8px" }}>{message}</p>}
@@ -176,17 +177,17 @@ export default function Home() {
 
   async function handleLogout() {
     await supabase.auth.signOut()
-    setSession(null); setEstablishment(null); setCampaigns([]); setPage("login")
+    setSession(null); setEstablishment(null); setCampaigns([]); setPage("login"); setView("dashboard")
   }
 
   if (view === "produtos" && establishment) return <Produtos establishment={establishment} onBack={() => setView("dashboard")} />
   if (view === "caixa" && establishment) return <Caixa establishment={establishment} campaigns={campaigns} onBack={() => setView("dashboard")} />
+  if (view === "simulacao") return <Simulacao onBack={() => setView("dashboard")} />
   if (!session || page === "login") return <AuthScreen onLogin={handleLogin} onSignUp={handleSignUp} message={message} loading={loading} />
   if (page === "register") return <RegisterScreen onRegister={handleRegister} loading={loading} message={message} />
 
   return (
     <div style={styles.page}>
-      {/* Topbar */}
       <div style={styles.topbar}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <div style={{ width: "32px", height: "32px", background: colors.primary, borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>🧾</div>
@@ -199,7 +200,6 @@ export default function Home() {
       </div>
 
       <div style={styles.content}>
-        {/* Quick actions */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "24px" }}>
           <button onClick={() => setView("caixa")}
             style={{ background: colors.primary, color: "white", border: "none", borderRadius: "16px", padding: "22px 20px", cursor: "pointer", textAlign: "left", transition: "all 0.2s" }}
@@ -218,9 +218,17 @@ export default function Home() {
             <div style={{ fontSize: "16px", fontWeight: "600", marginBottom: "3px" }}>Produtos</div>
             <div style={{ fontSize: "12px", color: colors.textMuted }}>Gerenciar cardápio</div>
           </button>
+
+          <button onClick={() => setView("simulacao")}
+            style={{ background: colors.white, color: colors.text, border: `1.5px solid ${colors.border}`, borderRadius: "16px", padding: "22px 20px", cursor: "pointer", textAlign: "left", transition: "all 0.2s", gridColumn: "span 2" }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = colors.primary; e.currentTarget.style.background = colors.primaryLight }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = colors.border; e.currentTarget.style.background = colors.white }}>
+            <div style={{ fontSize: "26px", marginBottom: "10px" }}>🧩</div>
+            <div style={{ fontSize: "16px", fontWeight: "600", marginBottom: "3px" }}>Ver Simulação</div>
+            <div style={{ fontSize: "12px", color: colors.textMuted }}>Como o cliente vai viver a experiência</div>
+          </button>
         </div>
 
-        {/* Campanhas */}
         <div style={styles.card}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
             <div>
@@ -233,7 +241,6 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Form nova campanha */}
           {showNewCampaign && (
             <div style={{ background: colors.primaryLight, borderRadius: "12px", padding: "18px", marginBottom: "18px", border: `1px solid #C7D2FE` }}>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -247,18 +254,14 @@ export default function Home() {
                 </div>
                 <div>
                   <label style={styles.label}>Visitas necessárias</label>
-                  <input type="number" value={campVisits} onChange={(e) => setCampVisits(Number(e.target.value))}
-                    style={{ ...styles.input, width: "100px" }} />
+                  <input type="number" value={campVisits} onChange={(e) => setCampVisits(Number(e.target.value))} style={{ ...styles.input, width: "100px" }} />
                 </div>
-                <button onClick={handleCreateCampaign} style={{ ...styles.btnPrimary, background: colors.primary }}>
-                  Criar Campanha
-                </button>
+                <button onClick={handleCreateCampaign} style={styles.btnPrimary}>Criar Campanha</button>
                 {message && <p style={{ fontSize: "13px", color: colors.danger }}>{message}</p>}
               </div>
             </div>
           )}
 
-          {/* Lista */}
           {campaigns.length === 0 && !showNewCampaign && (
             <div style={{ textAlign: "center", padding: "32px 0", color: colors.textMuted }}>
               <div style={{ fontSize: "32px", marginBottom: "10px" }}>🎯</div>
