@@ -211,23 +211,34 @@ export default function Nota() {
               </div>
 
               <div style={{ fontSize: "10px", color: "#555", marginBottom: "12px" }}>
-                PEÇA {piece} DE 4 — {visitCount}/{campaign?.visits_required} VISITAS
-              </div>
+  PEÇA {piece} DE 4
+</div>
 
-              {/* Progresso */}
-              <div style={{ display: "flex", justifyContent: "center", gap: "6px", marginBottom: "12px" }}>
-                {Array.from({ length: campaign?.visits_required }).map((_, i) => (
-                  <div key={i} style={{ width: "28px", height: "28px", borderRadius: "50%", background: i < visitCount ? "#10B981" : "#e0e0e0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", color: "white", fontWeight: "700" }}>
-                    {i < visitCount ? "✓" : i + 1}
-                  </div>
-                ))}
-              </div>
+<div style={{ fontSize: "10px", color: "#555", marginBottom: "12px" }}>
+  PEÇA {piece} DE 4
+</div>
 
-              <div style={{ fontSize: "9px", color: "#888", marginBottom: "16px" }}>
-                {campaign?.visits_required - visitCount > 0
-                  ? `Faltam ${campaign?.visits_required - visitCount} visita${campaign?.visits_required - visitCount > 1 ? "s" : ""} pra ganhar: ${campaign?.reward_description}`
-                  : "Você completou! Mostre no caixa."}
-              </div>
+        {/* Progresso — quadradinhos estilo quebra-cabeça */}
+        <div style={{ display: "flex", justifyContent: "center", gap: "4px", marginBottom: "12px" }}>
+          {Array.from({ length: campaign?.visits_required }).map((_, i) => (
+            <div key={i} style={{
+              width: "24px", height: "24px", borderRadius: "4px",
+              background: i < visitCount ? "#4F46E5" : "#e8e8e8",
+              border: i < visitCount ? "none" : "1px dashed #ccc",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: "10px", color: "white", fontWeight: "700",
+              transition: "all 0.3s"
+            }}>
+              {i < visitCount ? "🧩" : ""}
+            </div>
+          ))}
+        </div>
+
+        <div style={{ fontSize: "9px", color: "#888", marginBottom: "16px" }}>
+          {campaign?.visits_required - visitCount > 0
+            ? `Faltam ${campaign?.visits_required - visitCount} compra${campaign?.visits_required - visitCount > 1 ? "s" : ""} pra ganhar: ${campaign?.reward_description}`
+            : "Você completou! Mostre no caixa."}
+        </div>
 
               {/* Botão salvar peça */}
               <button onClick={handleSavePiece}
