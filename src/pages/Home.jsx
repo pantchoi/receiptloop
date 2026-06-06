@@ -5,36 +5,17 @@ import Caixa from "./Caixa"
 import Simulacao from "./Simulacao"
 import Analytics from "./Analytics"
 
-const colors = {
-  primary: "#4F46E5",
-  primaryLight: "#EEF2FF",
-  primaryDark: "#3730A3",
-  danger: "#EF4444",
-  dangerLight: "#FEF2F2",
-  success: "#10B981",
-  successLight: "#ECFDF5",
-  text: "#111827",
-  textMuted: "#6B7280",
-  border: "#E5E7EB",
-  bg: "#F9FAFB",
-  white: "#FFFFFF",
-}
-
-const styles = {
-  page: { minHeight: "100vh", background: colors.bg, fontFamily: "'Google Sans', sans-serif" },
-  topbar: { background: colors.white, borderBottom: `1px solid ${colors.border}`, padding: "0 28px", display: "flex", justifyContent: "space-between", alignItems: "center", height: "60px", position: "sticky", top: 0, zIndex: 10 },
-  content: { maxWidth: "720px", margin: "0 auto", padding: "32px 20px" },
-  card: { background: colors.white, borderRadius: "16px", border: `1px solid ${colors.border}`, padding: "24px", marginBottom: "16px" },
-  label: { fontSize: "11px", fontWeight: "600", color: colors.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "6px" },
-  input: { width: "100%", padding: "11px 14px", border: `1.5px solid ${colors.border}`, borderRadius: "10px", fontSize: "14px", color: colors.text, outline: "none", transition: "border-color 0.2s", background: colors.white },
-  btnPrimary: { padding: "12px 20px", background: colors.primary, color: colors.white, border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "600", cursor: "pointer", transition: "all 0.15s", width: "100%" },
-  btnDanger: { padding: "6px 14px", background: colors.dangerLight, color: colors.danger, border: `1px solid #FECACA`, borderRadius: "8px", fontSize: "12px", fontWeight: "500", cursor: "pointer", transition: "all 0.15s" },
+const C = {
+  primary: "#4F46E5", primaryLight: "#EEF2FF", primaryDark: "#3730A3",
+  danger: "#EF4444", dangerLight: "#FEF2F2",
+  success: "#10B981", successLight: "#ECFDF5",
+  text: "#111827", muted: "#6B7280", border: "#E5E7EB", bg: "#F9FAFB", white: "#FFFFFF",
 }
 
 function Logo() {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-      <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg width="36" height="36" viewBox="0 0 40 40" fill="none">
         <rect width="40" height="40" rx="10" fill="#4F46E5" />
         <path d="M10 8h20v26l-4-3-4 3-4-3-4 3-4-3V8z" fill="white" />
         <rect x="14" y="13" width="12" height="1.5" rx="0.75" fill="#4F46E5" />
@@ -43,44 +24,9 @@ function Logo() {
         <circle cx="29" cy="29" r="7" fill="#10B981" />
         <path d="M26 29l2 2 4-4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
-      <span style={{ fontSize: "20px", fontWeight: "700", letterSpacing: "-0.5px", fontFamily: "'Google Sans', sans-serif" }}>
+      <span style={{ fontSize: "22px", fontWeight: "700", letterSpacing: "-0.5px" }}>
         <span style={{ color: "#4F46E5" }}>Receipt</span><span style={{ color: "#10B981" }}>Loop</span>
       </span>
-    </div>
-  )
-}
-
-function OnboardingChecklist({ establishment, campaigns, products, onAction }) {
-  const steps = [
-    { done: !!establishment, label: "Estabelecimento cadastrado", action: null, icon: "🏪" },
-    { done: products > 0, label: "Adicione seus produtos ao cardápio", action: "produtos", icon: "🛍️" },
-    { done: campaigns > 0, label: "Crie uma campanha de fidelidade", action: "campanha", icon: "🎯" },
-    { done: false, label: "Abra o caixa e registre sua primeira venda", action: "caixa", icon: "🧾" },
-  ]
-  const allDone = steps.every(s => s.done)
-  if (allDone) return null
-
-  return (
-    <div style={{ background: colors.white, borderRadius: "16px", border: `1.5px solid #C7D2FE`, padding: "20px", marginBottom: "20px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
-        <div style={{ width: "36px", height: "36px", background: colors.primaryLight, borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px" }}>🚀</div>
-        <div>
-          <p style={{ fontSize: "14px", fontWeight: "600", color: colors.text, margin: 0 }}>Configure seu ReceiptLoop</p>
-          <p style={{ fontSize: "12px", color: colors.textMuted, margin: 0 }}>{steps.filter(s => s.done).length} de {steps.length} concluídos</p>
-        </div>
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-        {steps.map((step, i) => (
-          <div key={i} onClick={() => step.action && !step.done && onAction(step.action)}
-            style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 12px", borderRadius: "10px", background: step.done ? colors.successLight : colors.bg, cursor: step.action && !step.done ? "pointer" : "default", border: `1px solid ${step.done ? "#A7F3D0" : colors.border}`, transition: "all 0.2s" }}>
-            <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: step.done ? colors.success : colors.border, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", flexShrink: 0 }}>
-              {step.done ? "✓" : <span style={{ color: colors.textMuted }}>{i + 1}</span>}
-            </div>
-            <span style={{ fontSize: "13px", color: step.done ? "#065F46" : colors.text, fontWeight: step.done ? "400" : "500", flex: 1, textDecoration: step.done ? "line-through" : "none" }}>{step.icon} {step.label}</span>
-            {step.action && !step.done && <span style={{ fontSize: "12px", color: colors.primary }}>→</span>}
-          </div>
-        ))}
-      </div>
     </div>
   )
 }
@@ -91,49 +37,54 @@ function AuthScreen({ onLogin, onSignUp, message, loading }) {
   const [isLogin, setIsLogin] = useState(true)
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #EEF2FF 0%, #F9FAFB 50%, #F0FDF4 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-      <div style={{ width: "100%", maxWidth: "400px" }}>
-        <div style={{ textAlign: "center", marginBottom: "32px" }}>
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
-            <svg width="52" height="52" viewBox="0 0 40 40" fill="none">
-              <rect width="40" height="40" rx="10" fill="#4F46E5" />
-              <path d="M10 8h20v26l-4-3-4 3-4-3-4 3-4-3V8z" fill="white" />
-              <rect x="14" y="13" width="12" height="1.5" rx="0.75" fill="#4F46E5" />
-              <rect x="14" y="17" width="8" height="1.5" rx="0.75" fill="#4F46E5" />
-              <rect x="14" y="21" width="10" height="1.5" rx="0.75" fill="#4F46E5" />
-              <circle cx="29" cy="29" r="7" fill="#10B981" />
-              <path d="M26 29l2 2 4-4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-          <h1 style={{ fontSize: "26px", fontWeight: "700", color: colors.text, marginBottom: "6px", letterSpacing: "-0.5px" }}>
-            <span style={{ color: "#4F46E5" }}>Receipt</span><span style={{ color: "#10B981" }}>Loop</span>
-          </h1>
-          <p style={{ color: colors.textMuted, fontSize: "14px" }}>Fidelização inteligente para seu negócio</p>
+    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #EEF2FF 0%, #F9FAFB 50%, #F0FDF4 100%)", display: "flex", fontFamily: "'Google Sans', sans-serif" }}>
+      {/* Left panel */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "60px", background: C.primary }}>
+        <Logo />
+        <h2 style={{ fontSize: "36px", fontWeight: "700", color: "white", marginTop: "40px", marginBottom: "16px", lineHeight: 1.2 }}>
+          Fidelização inteligente para seu negócio
+        </h2>
+        <p style={{ fontSize: "18px", color: "rgba(255,255,255,0.7)", lineHeight: 1.6 }}>
+          Transforme cada cupom fiscal em uma experiência memorável. Clientes coletam peças, completam o quebra-cabeça e ganham prêmios.
+        </p>
+        <div style={{ marginTop: "48px", display: "flex", flexDirection: "column", gap: "16px" }}>
+          {["🧾 Nota fiscal digital com QR code", "🧩 Quebra-cabeça colecionável", "📊 Analytics em tempo real", "♻️ Descarte responsável"].map(f => (
+            <div key={f} style={{ display: "flex", alignItems: "center", gap: "12px", color: "rgba(255,255,255,0.9)", fontSize: "16px" }}>{f}</div>
+          ))}
         </div>
+      </div>
 
-        <div style={{ background: colors.white, borderRadius: "20px", padding: "32px", boxShadow: "0 8px 40px rgba(0,0,0,0.08)", border: `1px solid ${colors.border}` }}>
-          <div style={{ display: "flex", background: colors.bg, borderRadius: "10px", padding: "4px", marginBottom: "24px" }}>
+      {/* Right panel */}
+      <div style={{ width: "480px", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px", background: C.white }}>
+        <div style={{ width: "100%" }}>
+          <h3 style={{ fontSize: "28px", fontWeight: "700", color: C.text, marginBottom: "8px" }}>{isLogin ? "Bem-vindo de volta" : "Criar conta"}</h3>
+          <p style={{ fontSize: "15px", color: C.muted, marginBottom: "32px" }}>{isLogin ? "Entre na sua conta pra continuar" : "Configure seu estabelecimento grátis"}</p>
+
+          <div style={{ display: "flex", background: C.bg, borderRadius: "12px", padding: "4px", marginBottom: "28px" }}>
             {["Entrar", "Criar conta"].map((tab, i) => (
               <button key={tab} onClick={() => setIsLogin(i === 0)}
-                style={{ flex: 1, padding: "8px", border: "none", borderRadius: "8px", fontSize: "13px", fontWeight: "500", cursor: "pointer", transition: "all 0.2s", background: (i === 0) === isLogin ? colors.white : "transparent", color: (i === 0) === isLogin ? colors.text : colors.textMuted, boxShadow: (i === 0) === isLogin ? "0 1px 4px rgba(0,0,0,0.08)" : "none" }}>
+                style={{ flex: 1, padding: "12px", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "500", cursor: "pointer", transition: "all 0.2s", background: (i === 0) === isLogin ? C.white : "transparent", color: (i === 0) === isLogin ? C.text : C.muted, boxShadow: (i === 0) === isLogin ? "0 1px 4px rgba(0,0,0,0.08)" : "none" }}>
                 {tab}
               </button>
             ))}
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             <div>
-              <label style={styles.label}>Email</label>
-              <input type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} style={styles.input} />
+              <label style={{ fontSize: "13px", fontWeight: "600", color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "8px" }}>Email</label>
+              <input type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)}
+                style={{ width: "100%", padding: "14px 16px", border: `1.5px solid ${C.border}`, borderRadius: "12px", fontSize: "15px", color: C.text, outline: "none", boxSizing: "border-box" }} />
             </div>
             <div>
-              <label style={styles.label}>Senha</label>
-              <input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} style={styles.input} />
+              <label style={{ fontSize: "13px", fontWeight: "600", color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "8px" }}>Senha</label>
+              <input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)}
+                style={{ width: "100%", padding: "14px 16px", border: `1.5px solid ${C.border}`, borderRadius: "12px", fontSize: "15px", color: C.text, outline: "none", boxSizing: "border-box" }} />
             </div>
             <button onClick={() => isLogin ? onLogin(email, password) : onSignUp(email, password)} disabled={loading}
-              style={{ ...styles.btnPrimary, marginTop: "4px", opacity: loading ? 0.7 : 1 }}>
-              {loading ? "Aguarde..." : isLogin ? "Entrar" : "Criar conta"}
+              style={{ padding: "16px", background: C.primary, color: "white", border: "none", borderRadius: "12px", fontSize: "16px", fontWeight: "600", cursor: "pointer", marginTop: "8px", opacity: loading ? 0.7 : 1 }}>
+              {loading ? "Aguarde..." : isLogin ? "Entrar" : "Criar conta grátis"}
             </button>
-            {message && <p style={{ fontSize: "13px", color: "#F59E0B", textAlign: "center", background: "#FFFBEB", padding: "10px", borderRadius: "8px" }}>{message}</p>}
+            {message && <p style={{ fontSize: "14px", color: "#F59E0B", textAlign: "center", background: "#FFFBEB", padding: "12px", borderRadius: "10px" }}>{message}</p>}
           </div>
         </div>
       </div>
@@ -144,25 +95,30 @@ function AuthScreen({ onLogin, onSignUp, message, loading }) {
 function RegisterScreen({ onRegister, loading, message }) {
   const [name, setName] = useState("")
   return (
-    <div style={{ minHeight: "100vh", background: colors.bg, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-      <div style={{ background: colors.white, borderRadius: "20px", padding: "32px", width: "100%", maxWidth: "400px", boxShadow: "0 8px 40px rgba(0,0,0,0.08)", border: `1px solid ${colors.border}` }}>
-        <div style={{ width: "44px", height: "44px", background: colors.successLight, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "16px", fontSize: "20px" }}>🏪</div>
-        <h2 style={{ fontSize: "20px", fontWeight: "700", color: colors.text, marginBottom: "6px" }}>Quase lá!</h2>
-        <p style={{ color: colors.textMuted, fontSize: "14px", marginBottom: "24px" }}>Como se chama seu estabelecimento?</p>
-        <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-          <div>
-            <label style={styles.label}>Nome do estabelecimento</label>
-            <input type="text" placeholder="Ex: Rick Doces" value={name} onChange={(e) => setName(e.target.value)} style={styles.input} />
-          </div>
-          <button onClick={() => onRegister(name)} disabled={loading} style={{ ...styles.btnPrimary, opacity: loading ? 0.7 : 1 }}>
-            {loading ? "Salvando..." : "Continuar →"}
-          </button>
-          {message && <p style={{ fontSize: "13px", color: colors.danger }}>{message}</p>}
-        </div>
+    <div style={{ minHeight: "100vh", background: C.bg, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Google Sans', sans-serif" }}>
+      <div style={{ background: C.white, borderRadius: "20px", padding: "48px", width: "100%", maxWidth: "480px", boxShadow: "0 8px 40px rgba(0,0,0,0.08)" }}>
+        <div style={{ width: "52px", height: "52px", background: C.successLight, borderRadius: "14px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "20px", fontSize: "24px" }}>🏪</div>
+        <h2 style={{ fontSize: "28px", fontWeight: "700", color: C.text, marginBottom: "8px" }}>Quase lá!</h2>
+        <p style={{ color: C.muted, fontSize: "16px", marginBottom: "32px" }}>Como se chama seu estabelecimento?</p>
+        <input type="text" placeholder="Ex: Rick Doces" value={name} onChange={(e) => setName(e.target.value)}
+          style={{ width: "100%", padding: "16px", border: `1.5px solid ${C.border}`, borderRadius: "12px", fontSize: "16px", marginBottom: "16px", boxSizing: "border-box", outline: "none" }} />
+        <button onClick={() => onRegister(name)} disabled={loading}
+          style={{ width: "100%", padding: "16px", background: C.primary, color: "white", border: "none", borderRadius: "12px", fontSize: "16px", fontWeight: "600", cursor: "pointer", opacity: loading ? 0.7 : 1 }}>
+          {loading ? "Salvando..." : "Continuar →"}
+        </button>
+        {message && <p style={{ fontSize: "14px", color: C.danger, marginTop: "12px" }}>{message}</p>}
       </div>
     </div>
   )
 }
+
+const NAV_ITEMS = [
+  { id: "dashboard", icon: "⊞", label: "Dashboard" },
+  { id: "caixa", icon: "🧾", label: "Caixa" },
+  { id: "produtos", icon: "🛍️", label: "Produtos" },
+  { id: "analytics", icon: "📊", label: "Analytics" },
+  { id: "simulacao", icon: "🧩", label: "Simulação" },
+]
 
 export default function Home() {
   const [session, setSession] = useState(null)
@@ -191,12 +147,8 @@ export default function Home() {
 
   async function fetchEstablishment(userId) {
     const { data } = await supabase.from("establishments").select("*").eq("user_id", userId).single()
-    if (data) {
-      setEstablishment(data)
-      fetchCampaigns(data.id)
-      fetchProductCount(data.id)
-      setPage("dashboard")
-    } else setPage("register")
+    if (data) { setEstablishment(data); fetchCampaigns(data.id); fetchProductCount(data.id); setPage("dashboard") }
+    else setPage("register")
   }
 
   async function fetchCampaigns(estId) {
@@ -251,12 +203,6 @@ export default function Home() {
     setSession(null); setEstablishment(null); setCampaigns([]); setPage("login"); setView("dashboard")
   }
 
-  function handleOnboardingAction(action) {
-    if (action === "produtos") setView("produtos")
-    if (action === "caixa") setView("caixa")
-    if (action === "campanha") setShowNewCampaign(true)
-  }
-
   if (view === "produtos" && establishment) return <Produtos establishment={establishment} onBack={() => { setView("dashboard"); fetchProductCount(establishment.id) }} />
   if (view === "caixa" && establishment) return <Caixa establishment={establishment} campaigns={campaigns} onBack={() => setView("dashboard")} />
   if (view === "simulacao") return <Simulacao onBack={() => setView("dashboard")} />
@@ -264,120 +210,153 @@ export default function Home() {
   if (!session || page === "login") return <AuthScreen onLogin={handleLogin} onSignUp={handleSignUp} message={message} loading={loading} />
   if (page === "register") return <RegisterScreen onRegister={handleRegister} loading={loading} message={message} />
 
+  const onboardingSteps = [
+    { done: true, label: "Estabelecimento cadastrado" },
+    { done: productCount > 0, label: "Produtos cadastrados", action: "produtos" },
+    { done: campaigns.length > 0, label: "Campanha criada", action: "campanha" },
+  ]
+  const onboardingDone = onboardingSteps.every(s => s.done)
+
   return (
-    <div style={styles.page}>
-      {/* Topbar */}
-      <div style={styles.topbar}>
-        <Logo />
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <span style={{ fontSize: "13px", color: colors.textMuted }}>{establishment?.name}</span>
-          <button onClick={handleLogout} style={{ background: "none", border: `1px solid ${colors.border}`, borderRadius: "8px", padding: "6px 14px", fontSize: "13px", color: colors.textMuted, cursor: "pointer" }}>Sair</button>
+    <div style={{ display: "flex", height: "100vh", fontFamily: "'Google Sans', sans-serif", background: C.bg, overflow: "hidden" }}>
+
+      {/* Sidebar */}
+      <div style={{ width: "240px", background: C.white, borderRight: `1px solid ${C.border}`, display: "flex", flexDirection: "column", flexShrink: 0 }}>
+        <div style={{ padding: "24px 20px 20px" }}>
+          <Logo />
+        </div>
+
+        <div style={{ padding: "0 12px", flex: 1 }}>
+          {NAV_ITEMS.map(item => (
+            <button key={item.id} onClick={() => setView(item.id)}
+              style={{ width: "100%", display: "flex", alignItems: "center", gap: "12px", padding: "12px 14px", border: "none", borderRadius: "10px", marginBottom: "4px", cursor: "pointer", textAlign: "left", fontSize: "15px", fontWeight: view === item.id ? "600" : "400", background: view === item.id ? C.primaryLight : "transparent", color: view === item.id ? C.primary : C.muted, transition: "all 0.15s" }}
+              onMouseEnter={(e) => { if (view !== item.id) e.currentTarget.style.background = C.bg }}
+              onMouseLeave={(e) => { if (view !== item.id) e.currentTarget.style.background = "transparent" }}>
+              <span style={{ fontSize: "18px" }}>{item.icon}</span>
+              {item.label}
+            </button>
+          ))}
+        </div>
+
+        <div style={{ padding: "16px 20px", borderTop: `1px solid ${C.border}` }}>
+          <p style={{ fontSize: "13px", fontWeight: "600", color: C.text, margin: "0 0 2px" }}>{establishment?.name}</p>
+          <p style={{ fontSize: "12px", color: C.muted, margin: "0 0 12px" }}>{session?.user?.email}</p>
+          <button onClick={handleLogout}
+            style={{ width: "100%", padding: "10px", background: C.bg, border: `1px solid ${C.border}`, borderRadius: "8px", fontSize: "13px", color: C.muted, cursor: "pointer" }}>
+            Sair
+          </button>
         </div>
       </div>
 
-      <div style={styles.content}>
+      {/* Main content */}
+      <div style={{ flex: 1, overflow: "auto", padding: "32px" }}>
+
+        {/* Header */}
+        <div style={{ marginBottom: "28px" }}>
+          <h1 style={{ fontSize: "28px", fontWeight: "700", color: C.text, margin: 0 }}>Dashboard</h1>
+          <p style={{ fontSize: "15px", color: C.muted, margin: "6px 0 0" }}>Bem-vindo de volta, {establishment?.name}</p>
+        </div>
 
         {/* Onboarding */}
-        <OnboardingChecklist
-          establishment={establishment}
-          campaigns={campaigns.length}
-          products={productCount}
-          onAction={handleOnboardingAction}
-        />
+        {!onboardingDone && (
+          <div style={{ background: C.white, borderRadius: "16px", border: `1.5px solid #C7D2FE`, padding: "24px", marginBottom: "24px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "20px" }}>
+              <div style={{ width: "44px", height: "44px", background: C.primaryLight, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px" }}>🚀</div>
+              <div>
+                <p style={{ fontSize: "16px", fontWeight: "600", color: C.text, margin: 0 }}>Configure seu ReceiptLoop</p>
+                <p style={{ fontSize: "13px", color: C.muted, margin: 0 }}>{onboardingSteps.filter(s => s.done).length} de {onboardingSteps.length} concluídos</p>
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: "12px" }}>
+              {onboardingSteps.map((step, i) => (
+                <div key={i} onClick={() => step.action && !step.done && setView(step.action)}
+                  style={{ flex: 1, padding: "16px", borderRadius: "12px", background: step.done ? C.successLight : C.bg, border: `1px solid ${step.done ? "#A7F3D0" : C.border}`, cursor: step.action && !step.done ? "pointer" : "default", transition: "all 0.2s" }}>
+                  <div style={{ fontSize: "20px", marginBottom: "8px" }}>{step.done ? "✅" : ["🏪", "🛍️", "🎯"][i]}</div>
+                  <p style={{ fontSize: "13px", fontWeight: "500", color: step.done ? "#065F46" : C.text, margin: 0, textDecoration: step.done ? "line-through" : "none" }}>{step.label}</p>
+                  {step.action && !step.done && <p style={{ fontSize: "12px", color: C.primary, margin: "4px 0 0" }}>Configurar →</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-        {/* Quick actions */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "24px" }}>
-          <button onClick={() => setView("caixa")}
-            style={{ background: colors.primary, color: "white", border: "none", borderRadius: "16px", padding: "22px 20px", cursor: "pointer", textAlign: "left", transition: "all 0.2s" }}
-            onMouseEnter={(e) => e.currentTarget.style.background = colors.primaryDark}
-            onMouseLeave={(e) => e.currentTarget.style.background = colors.primary}>
-            <div style={{ fontSize: "26px", marginBottom: "10px" }}>🧾</div>
-            <div style={{ fontSize: "16px", fontWeight: "600", marginBottom: "3px" }}>Abrir Caixa</div>
-            <div style={{ fontSize: "12px", opacity: 0.75 }}>Registrar vendas e gerar QR</div>
-          </button>
-
-          <button onClick={() => setView("produtos")}
-            style={{ background: colors.white, color: colors.text, border: `1.5px solid ${colors.border}`, borderRadius: "16px", padding: "22px 20px", cursor: "pointer", textAlign: "left", transition: "all 0.2s" }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = colors.primary; e.currentTarget.style.background = colors.primaryLight }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = colors.border; e.currentTarget.style.background = colors.white }}>
-            <div style={{ fontSize: "26px", marginBottom: "10px" }}>🛍️</div>
-            <div style={{ fontSize: "16px", fontWeight: "600", marginBottom: "3px" }}>Produtos</div>
-            <div style={{ fontSize: "12px", color: colors.textMuted }}>Gerenciar cardápio</div>
-          </button>
-
-          <button onClick={() => setView("analytics")}
-            style={{ background: colors.white, color: colors.text, border: `1.5px solid ${colors.border}`, borderRadius: "16px", padding: "22px 20px", cursor: "pointer", textAlign: "left", transition: "all 0.2s" }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#8B5CF6"; e.currentTarget.style.background = "#F5F3FF" }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = colors.border; e.currentTarget.style.background = colors.white }}>
-            <div style={{ fontSize: "26px", marginBottom: "10px" }}>📊</div>
-            <div style={{ fontSize: "16px", fontWeight: "600", marginBottom: "3px" }}>Analytics</div>
-            <div style={{ fontSize: "12px", color: colors.textMuted }}>Vendas, clientes e insights</div>
-          </button>
-
-          <button onClick={() => setView("simulacao")}
-            style={{ background: colors.white, color: colors.text, border: `1.5px solid ${colors.border}`, borderRadius: "16px", padding: "22px 20px", cursor: "pointer", textAlign: "left", transition: "all 0.2s" }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = colors.primary; e.currentTarget.style.background = colors.primaryLight }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = colors.border; e.currentTarget.style.background = colors.white }}>
-            <div style={{ fontSize: "26px", marginBottom: "10px" }}>🧩</div>
-            <div style={{ fontSize: "16px", fontWeight: "600", marginBottom: "3px" }}>Simulação</div>
-            <div style={{ fontSize: "12px", color: colors.textMuted }}>Como o cliente vive a experiência</div>
-          </button>
+        {/* KPIs rápidos */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginBottom: "24px" }}>
+          {[
+            { label: "Campanhas ativas", value: campaigns.length, icon: "🎯", color: C.primary, bg: C.primaryLight },
+            { label: "Produtos no cardápio", value: productCount, icon: "🛍️", color: "#8B5CF6", bg: "#F5F3FF" },
+            { label: "Peças do quebra-cabeça", value: 4, icon: "🧩", color: C.success, bg: C.successLight },
+          ].map(kpi => (
+            <div key={kpi.label} style={{ background: C.white, borderRadius: "16px", border: `1px solid ${C.border}`, padding: "24px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+                <div style={{ width: "44px", height: "44px", background: kpi.bg, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px" }}>{kpi.icon}</div>
+                <span style={{ fontSize: "14px", color: C.muted, fontWeight: "500" }}>{kpi.label}</span>
+              </div>
+              <p style={{ fontSize: "36px", fontWeight: "700", color: kpi.color, margin: 0 }}>{kpi.value}</p>
+            </div>
+          ))}
         </div>
 
         {/* Campanhas */}
-        <div style={styles.card}>
+        <div style={{ background: C.white, borderRadius: "16px", border: `1px solid ${C.border}`, padding: "24px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
             <div>
-              <h2 style={{ fontSize: "16px", fontWeight: "600", color: colors.text }}>Campanhas de Fidelidade</h2>
-              <p style={{ fontSize: "13px", color: colors.textMuted, marginTop: "2px" }}>{campaigns.length} campanha{campaigns.length !== 1 ? "s" : ""} ativa{campaigns.length !== 1 ? "s" : ""}</p>
+              <h2 style={{ fontSize: "18px", fontWeight: "600", color: C.text, margin: 0 }}>Campanhas de Fidelidade</h2>
+              <p style={{ fontSize: "14px", color: C.muted, margin: "4px 0 0" }}>{campaigns.length} campanha{campaigns.length !== 1 ? "s" : ""} ativa{campaigns.length !== 1 ? "s" : ""}</p>
             </div>
             <button onClick={() => setShowNewCampaign(!showNewCampaign)}
-              style={{ padding: "8px 16px", background: showNewCampaign ? colors.bg : colors.primary, color: showNewCampaign ? colors.textMuted : "white", border: `1px solid ${showNewCampaign ? colors.border : colors.primary}`, borderRadius: "10px", fontSize: "13px", fontWeight: "500", cursor: "pointer", transition: "all 0.2s" }}>
+              style={{ padding: "12px 20px", background: showNewCampaign ? C.bg : C.primary, color: showNewCampaign ? C.muted : "white", border: `1px solid ${showNewCampaign ? C.border : C.primary}`, borderRadius: "10px", fontSize: "14px", fontWeight: "500", cursor: "pointer", transition: "all 0.2s" }}>
               {showNewCampaign ? "Cancelar" : "+ Nova campanha"}
             </button>
           </div>
 
           {showNewCampaign && (
-            <div style={{ background: colors.primaryLight, borderRadius: "12px", padding: "18px", marginBottom: "18px", border: `1px solid #C7D2FE` }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            <div style={{ background: C.primaryLight, borderRadius: "14px", padding: "20px", marginBottom: "20px", border: `1px solid #C7D2FE` }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
                 <div>
-                  <label style={styles.label}>Nome da campanha</label>
-                  <input type="text" placeholder="Ex: Compre 4 ganhe 1" value={campName} onChange={(e) => setCampName(e.target.value)} style={styles.input} />
+                  <label style={{ fontSize: "12px", fontWeight: "600", color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "8px" }}>Nome da campanha</label>
+                  <input type="text" placeholder="Ex: Compre 4 ganhe 1" value={campName} onChange={(e) => setCampName(e.target.value)}
+                    style={{ width: "100%", padding: "12px 14px", border: `1.5px solid ${C.border}`, borderRadius: "10px", fontSize: "14px", outline: "none", boxSizing: "border-box", background: C.white }} />
                 </div>
                 <div>
-                  <label style={styles.label}>Recompensa</label>
-                  <input type="text" placeholder="Ex: 1 brigadeiro grátis" value={campReward} onChange={(e) => setCampReward(e.target.value)} style={styles.input} />
+                  <label style={{ fontSize: "12px", fontWeight: "600", color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "8px" }}>Recompensa</label>
+                  <input type="text" placeholder="Ex: 1 brigadeiro grátis" value={campReward} onChange={(e) => setCampReward(e.target.value)}
+                    style={{ width: "100%", padding: "12px 14px", border: `1.5px solid ${C.border}`, borderRadius: "10px", fontSize: "14px", outline: "none", boxSizing: "border-box", background: C.white }} />
                 </div>
-                <div style={{ background: colors.primaryLight, border: `1px solid #C7D2FE`, borderRadius: "8px", padding: "10px 12px" }}>
-                  <p style={{ fontSize: "12px", color: "#4338CA", margin: 0 }}>🧩 O cliente precisa colecionar <strong>4 peças diferentes</strong> do quebra-cabeça pra ganhar a recompensa.</p>
-                </div>
-                <button onClick={handleCreateCampaign} style={styles.btnPrimary}>Criar Campanha</button>
-                {message && <p style={{ fontSize: "13px", color: colors.danger }}>{message}</p>}
               </div>
+              <div style={{ background: "white", border: `1px solid #C7D2FE`, borderRadius: "10px", padding: "12px 16px", marginBottom: "16px" }}>
+                <p style={{ fontSize: "13px", color: "#4338CA", margin: 0 }}>🧩 O cliente precisa colecionar <strong>4 peças diferentes</strong> do quebra-cabeça pra ganhar a recompensa.</p>
+              </div>
+              <button onClick={handleCreateCampaign}
+                style={{ padding: "12px 24px", background: C.primary, color: "white", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "600", cursor: "pointer" }}>
+                Criar Campanha
+              </button>
+              {message && <p style={{ fontSize: "13px", color: C.danger, marginTop: "10px" }}>{message}</p>}
             </div>
           )}
 
           {campaigns.length === 0 && !showNewCampaign && (
-            <div style={{ textAlign: "center", padding: "32px 0", color: colors.textMuted }}>
-              <div style={{ fontSize: "32px", marginBottom: "10px" }}>🎯</div>
-              <p style={{ fontSize: "14px" }}>Nenhuma campanha ainda.</p>
-              <p style={{ fontSize: "13px", marginTop: "4px" }}>Crie uma pra começar a fidelizar clientes.</p>
+            <div style={{ textAlign: "center", padding: "48px 0", color: C.muted }}>
+              <div style={{ fontSize: "48px", marginBottom: "16px" }}>🎯</div>
+              <p style={{ fontSize: "16px", fontWeight: "500" }}>Nenhuma campanha ainda.</p>
+              <p style={{ fontSize: "14px", marginTop: "6px" }}>Crie uma pra começar a fidelizar clientes.</p>
             </div>
           )}
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             {campaigns.map(c => (
-              <div key={c.id} style={{ display: "flex", alignItems: "center", gap: "14px", padding: "14px 16px", background: colors.bg, borderRadius: "12px", border: `1px solid ${colors.border}`, transition: "all 0.2s" }}
+              <div key={c.id} style={{ display: "flex", alignItems: "center", gap: "16px", padding: "18px 20px", background: C.bg, borderRadius: "14px", border: `1px solid ${C.border}`, transition: "all 0.2s" }}
                 onMouseEnter={(e) => e.currentTarget.style.borderColor = "#C7D2FE"}
-                onMouseLeave={(e) => e.currentTarget.style.borderColor = colors.border}>
-                <div style={{ width: "40px", height: "40px", background: colors.primaryLight, borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", flexShrink: 0 }}>🎁</div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: "14px", fontWeight: "500", color: colors.text, margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.name}</p>
-                  <p style={{ fontSize: "12px", color: colors.textMuted, margin: "3px 0 0" }}>🎁 {c.reward_description} · 4 peças</p>
+                onMouseLeave={(e) => e.currentTarget.style.borderColor = C.border}>
+                <div style={{ width: "48px", height: "48px", background: C.primaryLight, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", flexShrink: 0 }}>🎁</div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: "16px", fontWeight: "500", color: C.text, margin: 0 }}>{c.name}</p>
+                  <p style={{ fontSize: "13px", color: C.muted, margin: "4px 0 0" }}>🎁 {c.reward_description} · 4 peças pra completar</p>
                 </div>
-                <button onClick={() => handleDeleteCampaign(c.id)} style={styles.btnDanger}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = colors.danger; e.currentTarget.style.color = "white" }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = colors.dangerLight; e.currentTarget.style.color = colors.danger }}>
+                <button onClick={() => handleDeleteCampaign(c.id)}
+                  style={{ padding: "8px 16px", background: "#FEF2F2", color: C.danger, border: `1px solid #FECACA`, borderRadius: "8px", fontSize: "13px", fontWeight: "500", cursor: "pointer", transition: "all 0.2s" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = C.danger; e.currentTarget.style.color = "white" }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "#FEF2F2"; e.currentTarget.style.color = C.danger }}>
                   Remover
                 </button>
               </div>
