@@ -74,14 +74,14 @@ function ThermalReceipt({ piece, establishment, items, total, date }) {
         </div>
       </div>
 
-      {/* Peça do quebra-cabeça */}
-      <div style={{ textAlign: "center", marginBottom: "10px" }}>
-        <div style={{ fontSize: "9px", color: "#888", marginBottom: "6px" }}>SUA PEÇA #{piece} DE 4</div>
-        <div style={{ display: "inline-block", border: "2px dashed #ccc", padding: "4px" }}>
-          <PuzzlePiece piece={piece} size={80} />
-        </div>
-        <div style={{ fontSize: "8px", color: "#aaa", marginTop: "4px" }}>Complete as 4 peças e ganhe 1 brigadeiro grátis!</div>
-      </div>
+    {/* Peça do quebra-cabeça — só texto, desenho aparece ao escanear */}
+    <div style={{ textAlign: "center", marginBottom: "10px" }}>
+    <div style={{ fontSize: "9px", color: "#555", marginBottom: "4px" }}>SUA PEÇA #{piece} DE 4</div>
+    <div style={{ border: "2px dashed #ccc", borderRadius: "4px", padding: "10px", fontSize: "9px", color: "#aaa" }}>
+        Escaneie o QR acima para revelar sua peça 👆
+    </div>
+    <div style={{ fontSize: "8px", color: "#aaa", marginTop: "4px" }}>Complete as 4 peças e ganhe 1 brigadeiro grátis!</div>
+    </div>
 
       <div style={{ fontSize: "10px", color: "#333", marginBottom: "8px" }}>{divider}</div>
 
