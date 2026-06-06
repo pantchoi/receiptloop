@@ -65,7 +65,6 @@ export default function Nota() {
     if (!phone) return
     setSubmitting(true)
 
-    // Busca todas as visitas do cliente nessa campanha
     const { data: allVisits } = await supabase
       .from("customer_visits")
       .select("*")
@@ -73,16 +72,11 @@ export default function Nota() {
       .eq("customer_phone", phone)
 
     const visits = allVisits || []
-
-    // Peças já coletadas pelo cliente
     const piecesAlreadyHave = visits.map(v => v.piece_number).filter(Boolean)
-
-    // Sorteia uma peça — preferindo as que ainda não tem
     const missingPieces = [1, 2, 3, 4].filter(p => !piecesAlreadyHave.includes(p))
     const pool = missingPieces.length > 0 ? missingPieces : [1, 2, 3, 4]
     const newPiece = pool[Math.floor(Math.random() * pool.length)]
 
-    // Registra a nova visita com a peça
     await supabase.from("customer_visits").insert([{
       campaign_id: campaign.id,
       customer_phone: phone,
@@ -90,12 +84,10 @@ export default function Nota() {
       piece_number: newPiece
     }])
 
-    // Verifica se agora tem as 4 peças diferentes
     const allPieces = [...piecesAlreadyHave, newPiece]
     const uniquePieces = [...new Set(allPieces)]
     const hasAll = uniquePieces.length === 4
 
-    // Se completou, marca como resgatado
     if (hasAll) {
       await supabase.from("customer_visits")
         .update({ redeemed: true })
@@ -157,7 +149,7 @@ export default function Nota() {
   return (
     <div style={{ minHeight: "100vh", background: "#f0ede6", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "20px 12px 40px" }}>
       <div style={{ width: "100%", maxWidth: "340px" }}>
-        <div style={{ ...mono, background: "#fffef5", padding: "20px 16px", boxShadow: "2px 4px 24px rgba(0,0,0,0.12)", position: "relative" }}>
+        <div style={{ ...mono, background: "#fffef5", padding: "20px 16px", boxShadow: "2px 4px 24px rgba(0,0,0,0.12)" }}>
 
           {/* Cabeçalho */}
           <div style={{ textAlign: "center", marginBottom: "12px" }}>
@@ -206,16 +198,19 @@ export default function Nota() {
               <div style={{ fontSize: "36px", marginBottom: "8px" }}>🎉</div>
               <div style={{ fontSize: "13px", fontWeight: "700", color: "#10B981", marginBottom: "4px" }}>QUEBRA-CABEÇA COMPLETO!</div>
               <div style={{ fontSize: "11px", color: "#065F46", marginBottom: "12px" }}>Você coletou as 4 peças do brigadeiro!</div>
-              <div style={{ background: "#ECFDF5", border: "1px solid #A7F3D0", borderRadius: "8px", padding: "10px", fontSize: "11px", color: "#065F46" }}>
+              <div style={{ background: "#ECFDF5", border: "1px solid #A7F3D0", borderRadius: "8px", padding: "10px", fontSize: "11px", color: "#065F46", marginBottom: "12px" }}>
                 🎁 Mostre essa tela no caixa e ganhe:<br />
                 <strong>{campaign?.reward_description}</strong>
               </div>
+              <button onClick={() => window.location.href = `/perfil/${phone}`}
+                style={{ ...mono, width: "100%", padding: "10px", background: "transparent", color: "#4F46E5", border: "1px solid #4F46E5", borderRadius: "8px", fontSize: "11px", fontWeight: "700", cursor: "pointer", letterSpacing: "0.5px" }}>
+                VER MEU PERFIL COMPLETO →
+              </button>
             </div>
           ) : result === "progress" ? (
             <div style={{ textAlign: "center" }}>
               <div style={{ fontSize: "10px", fontWeight: "700", letterSpacing: "1px", marginBottom: "12px" }}>★ SUA PEÇA DO QUEBRA-CABEÇA ★</div>
 
-              {/* Peça revelada */}
               <div style={{ display: "flex", justifyContent: "center", marginBottom: "8px" }} ref={pieceRef}>
                 <div style={{ border: "2px dashed #10B981", padding: "8px", background: "white", borderRadius: "4px" }}>
                   <BrigadeiroPiece piece={piece} size={160} />
@@ -226,7 +221,6 @@ export default function Nota() {
                 VOCÊ GANHOU A PEÇA {piece} DE 4
               </div>
 
-              {/* Quais peças já tem */}
               <div style={{ marginBottom: "6px" }}>
                 <div style={{ fontSize: "9px", color: "#aaa", marginBottom: "6px" }}>SUAS PEÇAS COLETADAS:</div>
                 <div style={{ display: "flex", justifyContent: "center", gap: "6px", marginBottom: "4px" }}>
@@ -252,10 +246,14 @@ export default function Nota() {
                   : "Você completou! Mostre no caixa."}
               </div>
 
-              {/* Botão salvar peça */}
               <button onClick={handleSavePiece}
                 style={{ ...mono, width: "100%", padding: "12px", background: "#4F46E5", color: "white", border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: "700", cursor: "pointer", letterSpacing: "0.5px", marginBottom: "8px" }}>
                 ↓ SALVAR MINHA PEÇA
+              </button>
+
+              <button onClick={() => window.location.href = `/perfil/${phone}`}
+                style={{ ...mono, width: "100%", padding: "10px", background: "transparent", color: "#4F46E5", border: "1px solid #4F46E5", borderRadius: "8px", fontSize: "11px", fontWeight: "700", cursor: "pointer", letterSpacing: "0.5px" }}>
+                VER MEU PERFIL COMPLETO →
               </button>
             </div>
           ) : (
